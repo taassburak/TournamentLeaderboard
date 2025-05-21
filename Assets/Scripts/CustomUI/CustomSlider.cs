@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Sirenix.OdinInspector;
 using Ui;
 
@@ -48,7 +49,6 @@ public class CustomSlider : MonoBehaviour
 
     void Start()
     {
-        
         CalculateItemHeight();
         RefreshContentItemsList();
         ArrangeItems();
@@ -121,6 +121,38 @@ public class CustomSlider : MonoBehaviour
         }
     }
     
+    public void SortContentItemsByRank(bool ascending = true)
+    {
+        // Önce listeyi güncelle
+        RefreshContentItemsList();
+    
+        if (ContentItems.Count <= 1) return; // Sıralamaya gerek yok
+    
+        // LINQ ile sıralama yap
+        List<PlayerInfoElement> sortedList;
+    
+        if (ascending)
+        {
+            // Küçükten büyüğe sırala
+            sortedList = ContentItems.OrderBy(element => element.Rank).ToList();
+        }
+        else
+        {
+            // Büyükten küçüğe sırala
+            sortedList = ContentItems.OrderByDescending(element => element.Rank).ToList();
+        }
+    
+        // Sibling indekslerini yeniden düzenle
+        for (int i = 0; i < sortedList.Count; i++)
+        {
+            sortedList[i].transform.SetSiblingIndex(i);
+        }
+    
+        // ContentItems listesini güncelle
+        RefreshContentItemsList();
+    }
+    
+    
     [Button]
     public void ArrangeItems()
     {
@@ -130,7 +162,7 @@ public class CustomSlider : MonoBehaviour
             return;
 
         Vector3 currentPos = transform.position;
-
+        
         for (int i = 0; i < ContentItems.Count; i++)
         {
             if (ContentItems[i] != null)

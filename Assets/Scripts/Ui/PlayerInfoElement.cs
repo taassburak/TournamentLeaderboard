@@ -12,6 +12,12 @@ namespace Ui
         private PlayerData _assignedData;
         public PlayerData AssignedData => _assignedData;
         public int Rank { get; private set; }
+
+        public void Initialize(UiManager uiManager)
+        {
+            _background.Initialize(uiManager);
+        }
+        
         public void PopulateView(PlayerData data, int rank)
         {
             Rank = rank;

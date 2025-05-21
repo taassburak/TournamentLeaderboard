@@ -46,7 +46,6 @@ public class CustomCanvas : MonoBehaviour
         foreach (var element in _uiElements)
         {
             element.UpdateVisuals();
-            element.UpdateCollider();
         }
     }
 

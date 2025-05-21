@@ -1,3 +1,4 @@
+using Ui;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -15,20 +16,18 @@ public class CustomUIElement : MonoBehaviour
     [HideInInspector] public bool _isDirty = true;
 
     protected CustomCanvas parentCanvas;
-    protected BoxCollider2D _collider;
+    
+    public UiManager UiManager { get; set; }
 
     protected virtual void OnEnable()
     {
-        //EnsureCollider();
         UpdateVisuals();
-        UpdateCollider();
     }
 
-    protected virtual void Awake()
+    public virtual void Initialize(UiManager uiManager)
     {
-        //EnsureCollider();
+        UiManager = uiManager;
         UpdateVisuals();
-        UpdateCollider();
     }
     
     public void SetCanvas(CustomCanvas canvas)
@@ -41,7 +40,6 @@ public class CustomUIElement : MonoBehaviour
         if (_isDirty)
         {
             UpdateVisuals();
-            UpdateCollider();
             _isDirty = false;
         }
     }
@@ -49,16 +47,6 @@ public class CustomUIElement : MonoBehaviour
     public virtual void UpdateVisuals()
     {
         
-    }
-
-    public virtual void UpdateCollider()
-    {
-        if (_collider != null)
-        {
-            _collider.size = new Vector2(size.x, size.y);
-        }
-
-        transform.localScale = size;
     }
 
     public virtual void SetSize(Vector2 newSize)
@@ -84,7 +72,6 @@ public class CustomUIElementEditor : Editor
         {
             element._isDirty = true;
             element.UpdateVisuals();
-            element.UpdateCollider();
             EditorUtility.SetDirty(element);
             SceneView.RepaintAll();
         }
@@ -131,7 +118,6 @@ public class CustomUIElementEditor : Editor
         if (GUILayout.Button("Update UI Element"))
         {
             element.UpdateVisuals();
-            element.UpdateCollider();
             EditorUtility.SetDirty(element);
             SceneView.RepaintAll();
         }

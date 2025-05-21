@@ -17,12 +17,24 @@ namespace Ui
         [SerializeField] private Transform _playerInfoElementParent;
         [SerializeField] private CustomSlider _scroll;
         [SerializeField] private int _size;
+        [SerializeField] private CustomButton _updateButton;
 
         private int _currentExtraSize = 0;
 
         public override void Initialize(GameManager gameManager)
         {
             base.Initialize(gameManager);
+            _updateButton.Initialize(this);
+            CreateLeaderBoardForTesting();
+            GameManager.EventManager.OnUpdateButtonClicked += Test;
+            GameManager.EventManager.OnScroll += SetUpdateButtonClickable;
+        }
+
+        private void OnDestroy()
+        {
+            GameManager.EventManager.OnUpdateButtonClicked -= Test;
+            GameManager.EventManager.OnScroll -= SetUpdateButtonClickable;
+
         }
 
 
@@ -89,8 +101,8 @@ namespace Ui
 
         private IEnumerator UpdateVisualAfterScoresUpdate()
         {
+            GameManager.EventManager.ScrollStarted();
             int meOldRank = _leaderBoardManager.GetPlayerRank(0);
-
             _leaderBoardManager.UpdateScoresRandomly();
 
             int meNewRank = _leaderBoardManager.GetPlayerRank(0);
@@ -133,16 +145,20 @@ namespace Ui
                 }
             }
 
-            _scroll.ScrollToItem(_currentExtraSize + 5, 0);
-            me.transform.position = new Vector3(-0.25f, -1.5f);
-            yield return new WaitForSeconds(1f);
-
-            var unusedItems = _scroll.ContentItems.FindAll(x => x.Rank == meOldRank + 1);
+            var unusedItems = FindElementsWithSameRank();
             foreach (var unusedItem in unusedItems)
             {
                 unusedItem.transform.SetParent(null);
                 unusedItem.transform.gameObject.SetActive(false);
             }
+            _scroll.SortContentItemsByRank();
+            _scroll.ArrangeItems();
+            yield return null;
+            _scroll.ScrollToItem(_currentExtraSize + 5 - unusedItems.Count, 0);
+            me.transform.position = new Vector3(-0.25f, -1.5f);
+            yield return new WaitForSeconds(1f);
+
+            
 
             var nextItem = _scroll.ContentItems.Find(x => x.Rank + 1 == meNewRank);
             var desiredScrollIndex = nextItem.transform.GetSiblingIndex();
@@ -158,30 +174,56 @@ namespace Ui
             yield return new WaitForSeconds(1f);
 
             
-            if (rankDiff > 0)
+            var elementsToReturnPool = _scroll.ContentItems.FindAll(x => x.Rank < meNewRank - 5 || x.Rank > meNewRank + 5);
+            _poolingController.DeactiveUnusedPoolItems(elementsToReturnPool);
+            foreach (var element in elementsToReturnPool)
             {
-                var elementsToReturnPool = _scroll.ContentItems.FindAll(x => x.Rank < meNewRank - 6 || x.Rank > meNewRank + 4);
-                _poolingController.DeactiveUnusedPoolItems(elementsToReturnPool);
-                foreach (var element in elementsToReturnPool)
-                {
-                    _scroll.ContentItems.Remove(element);
-                }
+                _scroll.ContentItems.Remove(element);
             }
-            else
-            {
-                var elementsToReturnPool = _scroll.ContentItems.FindAll(x => x.Rank < meNewRank - 4 || x.Rank > meNewRank + 6);
-                _poolingController.DeactiveUnusedPoolItems(elementsToReturnPool);
-                foreach (var element in elementsToReturnPool)
-                {
-                    _scroll.ContentItems.Remove(element);
-                }
             
-            }
-
             _currentExtraSize = 0;
-            _scroll.transform.position = new Vector3(0, 1.2f, 0);
             yield return null;
-            _scroll.ArrangeItems();
+            GameManager.EventManager.ScrollEnded();
+        }
+
+        private void SetUpdateButtonClickable(bool isUnclickable)
+        {
+            _updateButton.SetClickable(!isUnclickable);
+        }
+        
+        private List<PlayerInfoElement> FindElementsWithSameRank()
+        {
+            _scroll.RefreshContentItemsList();
+    
+            Dictionary<int, List<PlayerInfoElement>> rankGroups = new Dictionary<int, List<PlayerInfoElement>>();
+    
+            foreach (var element in _scroll.ContentItems)
+            {
+                if (element == null) continue;
+        
+                int rank = element.Rank;
+        
+                if (!rankGroups.ContainsKey(rank))
+                {
+                    rankGroups[rank] = new List<PlayerInfoElement>();
+                }
+        
+                rankGroups[rank].Add(element);
+            }
+    
+            List<PlayerInfoElement> sameRankGroups = new List<PlayerInfoElement>();
+    
+            foreach (var group in rankGroups)
+            {
+                if (group.Value.Count > 1)
+                {
+                    for (int i = 1; i < group.Value.Count; i++)
+                    {
+                        sameRankGroups.Add(group.Value[i]);
+                    }
+                }
+            }
+            return sameRankGroups;
         }
     }
 }

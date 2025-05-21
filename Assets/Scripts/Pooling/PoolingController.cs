@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Core;
 using Ui;
 
 namespace Scripts.Pooling
@@ -7,7 +8,7 @@ namespace Scripts.Pooling
     /// <summary>
     /// Leaderboard için object pooling yönetimi
     /// </summary>
-    public class PoolingController : MonoBehaviour
+    public class PoolingController : CustomManager
     {
         [Header("Pooling Settings")]
         [SerializeField] private PlayerInfoElement _playerInfoElementPrefab;
@@ -16,14 +17,15 @@ namespace Scripts.Pooling
         [SerializeField] private bool expandPoolIfNeeded = true;
         
         private List<PlayerInfoElement> _entryPool = new List<PlayerInfoElement>();
-        
-        private void Awake()
+
+
+        public override void Initialize(GameManager gameManager)
         {
+            base.Initialize(gameManager);
             CreatePool(initialPoolSize);
         }
         
-        
-        public void CreatePool(int size)
+        private void CreatePool(int size)
         {
             
             ClearPool();
@@ -41,6 +43,7 @@ namespace Scripts.Pooling
         private PlayerInfoElement CreatePoolItem()
         {
             PlayerInfoElement entry = Instantiate(_playerInfoElementPrefab, _parent);
+            entry.Initialize(GameManager.UiManager);
             entry.gameObject.SetActive(false);
             _entryPool.Add(entry);
             return entry;

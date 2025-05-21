@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using TMPro;
+using Ui;
 using UnityEditor;
 
 [ExecuteInEditMode]
@@ -14,26 +15,38 @@ public class CustomButton : CustomImage
     [HideInInspector] public bool _isPressed = false;
     [HideInInspector] public bool _isHovered = false;
 
+    protected BoxCollider2D _collider;
 
-    public Action OnClick;
+    private bool _isClickable;
 
-    protected override void Awake()
+    public void SetClickable(bool isClickable)
     {
-        base.Awake();
-        SpriteRenderer.color = normalColor;
+        _isClickable = isClickable;
+    }
+    
+    public override void Initialize(UiManager uiManager)
+    {
+        base.Initialize(uiManager);
+        _collider = GetComponent<BoxCollider2D>();
+        //SpriteRenderer.color = normalColor;
         UpdateButtonState();
+        SetClickable(true);
     }
 
     protected override void OnEnable()
     {
         base.OnEnable();
-        SpriteRenderer.color = normalColor;
-        UpdateButtonState();
+        //SpriteRenderer.color = normalColor;
+        //UpdateButtonState();
     }
 
     protected override void Update()
     {
         base.Update();
+        if (!_isClickable)
+        {
+            return;
+        }
         HandleInput();
     }
 
@@ -69,7 +82,7 @@ public class CustomButton : CustomImage
             {
                 _isPressed = false;
                 UpdateButtonState();
-                OnClick?.Invoke();
+                UiManager.GameManager.EventManager.UpdateButtonClicked();
             }
         }
         else
