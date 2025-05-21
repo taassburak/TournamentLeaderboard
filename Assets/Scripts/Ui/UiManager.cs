@@ -1,7 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using MangoramaStudio.Scripts.Data;
+using Core;
+using Scripts.Data;
 using Scripts.Pooling;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -9,7 +10,7 @@ using UnityEngine;
 
 namespace Ui
 {
-    public class UiManager : MonoBehaviour
+    public class UiManager : CustomManager
     {
         [SerializeField] private LeaderBoardManager _leaderBoardManager;
         [SerializeField] private PoolingController _poolingController;
@@ -18,6 +19,12 @@ namespace Ui
         [SerializeField] private int _size;
 
         private int _currentExtraSize = 0;
+
+        public override void Initialize(GameManager gameManager)
+        {
+            base.Initialize(gameManager);
+        }
+
 
         [Button]
         private void CreateLeaderBoardForTesting()
@@ -174,7 +181,7 @@ namespace Ui
             _currentExtraSize = 0;
             _scroll.transform.position = new Vector3(0, 1.2f, 0);
             yield return null;
-            _scroll.ArrangeItemsSmooth();
+            _scroll.ArrangeItems();
         }
     }
 }

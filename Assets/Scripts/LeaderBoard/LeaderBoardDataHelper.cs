@@ -47,25 +47,8 @@ using UnityEngine;
             
            
             Application.quitting += SaveOnQuit;
-            
-            
-            #if UNITY_ANDROID || UNITY_IOS
-            Application.focusChanged += OnApplicationFocusChanged;
-            #endif
-            
-            
         }
-        
-        #if UNITY_ANDROID || UNITY_IOS
-        private void OnApplicationFocusChanged(bool hasFocus)
-        {
-            // Uygulama arka plana alındığında kaydet
-            if (!hasFocus && _isDirty)
-            {
-                SavePlayersData();
-            }
-        }
-        #endif
+
 
         ~LeaderBoardDataHelper()
         {
@@ -158,11 +141,11 @@ using UnityEngine;
             
             for (int i = 1; i < DefaultPlayerCount; i++)
             {
-                RuntimePlayerData.PlayersDataList.Add(new PlayerData(i, $"Player_{i}", 0));
+                RuntimePlayerData.PlayersDataList.Add(new PlayerData(i, $"Player_{i}", i));
             }
             
            
-            RuntimePlayerData.PlayersDataList.Add(new PlayerData(0, "Me", 0));
+            RuntimePlayerData.PlayersDataList.Add(new PlayerData(0, "Me", 500));
             
             RebuildPlayerIndexCache();
             _isDirty = true;
@@ -295,10 +278,6 @@ using UnityEngine;
         {
             SaveOnQuit();
             Application.quitting -= SaveOnQuit;
-            
-            #if UNITY_ANDROID || UNITY_IOS
-            Application.focusChanged -= OnApplicationFocusChanged;
-            #endif
             
             _playerIndexCache?.Clear();
             _sortedCache?.Clear();

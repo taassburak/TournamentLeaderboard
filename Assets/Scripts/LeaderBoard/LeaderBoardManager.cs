@@ -2,14 +2,13 @@ using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
+using Core;
 using Scripts.Pooling;
 using Ui;
-using Unity.VisualScripting;
-
-namespace MangoramaStudio.Scripts.Data
+namespace Scripts.Data
 {
     
-    public class LeaderBoardManager : MonoBehaviour
+    public class LeaderBoardManager : CustomManager
     {
         [Header("Settings")]
         [SerializeField] private int visibleEntries = 20;
@@ -33,17 +32,18 @@ namespace MangoramaStudio.Scripts.Data
         
         
         public System.Action OnLeaderboardChanged;
-        
-        private void Awake()
+
+        public override void Initialize(GameManager gameManager)
         {
-            Initialize();
+            base.Initialize(gameManager);
+            SelfInit();
         }
         
         private void OnEnable()
         {
             if (!_isInitialized)
             {
-                Initialize();
+                SelfInit();
             }
         }
         
@@ -57,7 +57,7 @@ namespace MangoramaStudio.Scripts.Data
         }
 
         
-        public void Initialize()
+        private void SelfInit()
         {
             if (_isInitialized) return;
             
@@ -82,7 +82,7 @@ namespace MangoramaStudio.Scripts.Data
         [Button]
         public void UpdateScoresRandomly()
         {
-            if (!_isInitialized) Initialize();
+            if (!_isInitialized) SelfInit();
             
             _leaderBoardDataHelper.UpdateScoresRandomly();
             UpdateDebugInfo();
@@ -102,7 +102,7 @@ namespace MangoramaStudio.Scripts.Data
         
         public List<PlayerData> GetTopPlayers(int count = 10)
         {
-            if (!_isInitialized) Initialize();
+            if (!_isInitialized) SelfInit();
             return _leaderBoardDataHelper.GetTopPlayers(count);
         }
         
@@ -110,7 +110,7 @@ namespace MangoramaStudio.Scripts.Data
         [Button]
         public List<PlayerData> GetPlayersAroundMe(int above = 5, int below = 5)
         {
-            if (!_isInitialized) Initialize();
+            if (!_isInitialized) SelfInit();
             return _leaderBoardDataHelper.GetPlayersAroundMe(above, below);
         }
 
@@ -122,7 +122,7 @@ namespace MangoramaStudio.Scripts.Data
         
         public List<PlayerData> GetLeaderboardEntries()
         {
-            if (!_isInitialized) Initialize();
+            if (!_isInitialized) SelfInit();
             
          
             int halfVisible = visibleEntries / 2;
@@ -164,7 +164,7 @@ namespace MangoramaStudio.Scripts.Data
 
         public void UpdatePlayersScore(int playerId, int newScore)
         {
-            if (!_isInitialized) Initialize();
+            if (!_isInitialized) SelfInit();
             
             _leaderBoardDataHelper.UpdatePlayersScore(playerId, newScore);
 
@@ -182,7 +182,7 @@ namespace MangoramaStudio.Scripts.Data
         [Button("Save Data Manually")]
         public void SaveData()
         {
-            if (!_isInitialized) Initialize();
+            if (!_isInitialized) SelfInit();
             
             if (allowManualSave)
             {
