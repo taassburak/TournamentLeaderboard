@@ -3,14 +3,15 @@ using System;
 using TMPro;
 using Ui;
 using UnityEditor;
+using UnityEngine.Serialization;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(BoxCollider2D))]
 public class CustomButton : CustomImage
 {
-    [Header("Button Settings")] public Color normalColor = Color.white;
-    public Color hoverColor = new Color(0.9f, 0.9f, 0.9f);
-    public Color pressedColor = new Color(0.7f, 0.7f, 0.7f);
+    [Header("Button Settings")] public Color NormalColor = Color.white;
+    public Color HoverColor = new Color(0.9f, 0.9f, 0.9f);
+    public Color PressedColor = new Color(0.7f, 0.7f, 0.7f);
 
     [HideInInspector] public bool _isPressed = false;
     [HideInInspector] public bool _isHovered = false;
@@ -112,15 +113,15 @@ public class CustomButton : CustomImage
 
         if (_isPressed)
         {
-            SpriteRenderer.color = pressedColor;
+            SpriteRenderer.color = PressedColor;
         }
         else if (_isHovered)
         {
-            SpriteRenderer.color = hoverColor;
+            SpriteRenderer.color = HoverColor;
         }
         else
         {
-            SpriteRenderer.color = normalColor;
+            SpriteRenderer.color = NormalColor;
         }
 
         _isDirty = true;

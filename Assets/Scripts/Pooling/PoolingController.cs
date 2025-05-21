@@ -5,9 +5,6 @@ using Ui;
 
 namespace Scripts.Pooling
 {
-    /// <summary>
-    /// Leaderboard için object pooling yönetimi
-    /// </summary>
     public class PoolingController : CustomManager
     {
         [Header("Pooling Settings")]

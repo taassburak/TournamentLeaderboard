@@ -4,45 +4,47 @@ using System.Collections.Generic;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Ui;
+using UnityEngine.Serialization;
 
 
 [ExecuteInEditMode]
 public class CustomSlider : MonoBehaviour
 {
     public List<PlayerInfoElement> ContentItems = new List<PlayerInfoElement>();
-
+    public AnimationCurve positionChangeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
     [OnValueChanged("ArrangeItems")] public float spacing = 1.0f;
+    public int VisibleItemCount = 10;
+    public Transform ViewportCenter;
 
-    public int visibleItemCount = 10;
-    public Transform viewportCenter;
 
-    [Header("Scroll Settings")] public float scrollDuration = 0.5f;
-    public AnimationCurve scrollCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    public int CurrentCenterIndex => currentCenterIndex;
-    [Header("Debug")] [SerializeField] private int currentCenterIndex = 0;
-    private bool isScrolling = false;
+    [Header("Scroll Settings")] public float ScrollDuration = 0.5f;
+    public AnimationCurve ScrollCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+    public int CurrentCenterIndex => _currentCenterIndex;
+    [Header("Debug")] [SerializeField] private int _currentCenterIndex = 0;
+    private bool _isScrolling = false;
     
-    private float itemHeight = 0;
-    private Vector3 viewportCenterPos;
+    private float _itemHeight = 0;
+    private Vector3 _viewportCenterPos;
 
     [Header("Smooth Movement Settings")]
-    public float positionChangeDuration = 0.3f;
+    public float PositionChangeDuration = 0.3f;
 
-    public AnimationCurve positionChangeCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] private bool _isEditMode;
 
     private Dictionary<Transform, Coroutine>
         activeMovements = new Dictionary<Transform, Coroutine>();
     
     void Awake()
     {
-        if (viewportCenter != null)
+        if (ViewportCenter != null)
         {
-            viewportCenterPos = viewportCenter.position;
+            _viewportCenterPos = ViewportCenter.position;
         }
         else
         {
-            viewportCenterPos = Camera.main.transform.position +
+            _viewportCenterPos = Camera.main.transform.position +
                                 Camera.main.transform.forward * Camera.main.nearClipPlane * 1.5f;
         }
     }
@@ -54,7 +56,6 @@ public class CustomSlider : MonoBehaviour
         ArrangeItems();
     }
 
-    [SerializeField] private bool _isEditMode;
 
     private void Update()
     {
@@ -104,18 +105,18 @@ public class CustomSlider : MonoBehaviour
             Renderer renderer = ContentItems[0].GetComponent<Renderer>();
             if (renderer != null)
             {
-                itemHeight = renderer.bounds.size.y + spacing;
+                _itemHeight = renderer.bounds.size.y + spacing;
             }
             else
             {
                 Collider collider = ContentItems[0].GetComponent<Collider>();
                 if (collider != null)
                 {
-                    itemHeight = collider.bounds.size.y + spacing;
+                    _itemHeight = collider.bounds.size.y + spacing;
                 }
                 else
                 {
-                    itemHeight = 1f + spacing;
+                    _itemHeight = 1f + spacing;
                 }
             }
         }
@@ -123,32 +124,26 @@ public class CustomSlider : MonoBehaviour
     
     public void SortContentItemsByRank(bool ascending = true)
     {
-        // Önce listeyi güncelle
         RefreshContentItemsList();
     
-        if (ContentItems.Count <= 1) return; // Sıralamaya gerek yok
+        if (ContentItems.Count <= 1) return;
     
-        // LINQ ile sıralama yap
         List<PlayerInfoElement> sortedList;
     
         if (ascending)
         {
-            // Küçükten büyüğe sırala
             sortedList = ContentItems.OrderBy(element => element.Rank).ToList();
         }
         else
         {
-            // Büyükten küçüğe sırala
             sortedList = ContentItems.OrderByDescending(element => element.Rank).ToList();
         }
     
-        // Sibling indekslerini yeniden düzenle
         for (int i = 0; i < sortedList.Count; i++)
         {
             sortedList[i].transform.SetSiblingIndex(i);
         }
     
-        // ContentItems listesini güncelle
         RefreshContentItemsList();
     }
     
@@ -168,7 +163,7 @@ public class CustomSlider : MonoBehaviour
             if (ContentItems[i] != null)
             {
                 ContentItems[i].transform.position = currentPos;
-                currentPos += Vector3.down * itemHeight;
+                currentPos += Vector3.down * _itemHeight;
             }
         }
     }
@@ -177,7 +172,7 @@ public class CustomSlider : MonoBehaviour
     {
         if (tempDuration == -1)
         {
-            tempDuration = scrollDuration;
+            tempDuration = ScrollDuration;
         }
         
         RefreshContentItemsList();
@@ -186,12 +181,12 @@ public class CustomSlider : MonoBehaviour
         itemIndex = Mathf.Clamp(itemIndex, 0, ContentItems.Count - 1);
 
         
-        if (itemIndex == currentCenterIndex && !isScrolling)
+        if (itemIndex == _currentCenterIndex && !_isScrolling)
         {
             return;
         }
 
-        if (isScrolling)
+        if (_isScrolling)
         {
             StopAllCoroutines(); 
         }
@@ -201,12 +196,12 @@ public class CustomSlider : MonoBehaviour
     
     private IEnumerator ScrollToIndexCoroutine(int targetIndex, float duration)
     {
-        isScrolling = true;
+        _isScrolling = true;
         
         Vector3 targetItemCurrentPos = ContentItems[targetIndex].transform.position;
 
         
-        float offsetY = targetItemCurrentPos.y - viewportCenterPos.y;
+        float offsetY = targetItemCurrentPos.y - _viewportCenterPos.y;
         
         Vector3 startPos = transform.position;
         Vector3 targetPos = new Vector3(
@@ -220,8 +215,8 @@ public class CustomSlider : MonoBehaviour
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
-            float normalizedTime = Mathf.Clamp01(elapsedTime / scrollDuration);
-            float curveValue = scrollCurve.Evaluate(normalizedTime);
+            float normalizedTime = Mathf.Clamp01(elapsedTime / ScrollDuration);
+            float curveValue = ScrollCurve.Evaluate(normalizedTime);
             
             transform.position = Vector3.Lerp(startPos, targetPos, curveValue);
 
@@ -229,8 +224,8 @@ public class CustomSlider : MonoBehaviour
         }
         
         transform.position = targetPos;
-        currentCenterIndex = targetIndex;
-        isScrolling = false;
+        _currentCenterIndex = targetIndex;
+        _isScrolling = false;
 
         
     }
@@ -250,23 +245,23 @@ public class CustomSlider : MonoBehaviour
     [Button]
     public void ScrollToNext()
     {
-        ScrollToItem(currentCenterIndex + 1);
+        ScrollToItem(_currentCenterIndex + 1);
     }
 
     [Button]
     public void ScrollToPrevious()
     {
-        ScrollToItem(currentCenterIndex - 1);
+        ScrollToItem(_currentCenterIndex - 1);
     }
     
     public void ScrollToNextPage()
     {
-        ScrollToItem(currentCenterIndex + visibleItemCount);
+        ScrollToItem(_currentCenterIndex + VisibleItemCount);
     }
 
     public void ScrollToPreviousPage()
     {
-        ScrollToItem(currentCenterIndex - visibleItemCount);
+        ScrollToItem(_currentCenterIndex - VisibleItemCount);
     }
     
     public void ScrollToStart()
@@ -341,7 +336,7 @@ public class CustomSlider : MonoBehaviour
             if (ContentItems[i] != null)
             {
                 positions[ContentItems[i].transform] = currentPos;
-                currentPos += Vector3.down * itemHeight;
+                currentPos += Vector3.down * _itemHeight;
             }
         }
 
@@ -363,10 +358,10 @@ public class CustomSlider : MonoBehaviour
         Vector3 startPosition = element.position;
         float elapsedTime = 0;
 
-        while (elapsedTime < positionChangeDuration)
+        while (elapsedTime < PositionChangeDuration)
         {
             elapsedTime += Time.deltaTime;
-            float normalizedTime = Mathf.Clamp01(elapsedTime / positionChangeDuration);
+            float normalizedTime = Mathf.Clamp01(elapsedTime / PositionChangeDuration);
             float curveValue = positionChangeCurve.Evaluate(normalizedTime);
             
             element.position = Vector3.Lerp(startPosition, targetPosition, curveValue);
@@ -418,11 +413,11 @@ public class CustomSlider : MonoBehaviour
     
     private IEnumerator ScrollToIndexWithExclusionCoroutine(int targetIndex, PlayerInfoElement excludedElement)
     {
-        isScrolling = true;
+        _isScrolling = true;
         
         Vector3 targetItemCurrentPos = ContentItems[targetIndex].transform.position;
         
-        float offsetY = targetItemCurrentPos.y - viewportCenterPos.y;
+        float offsetY = targetItemCurrentPos.y - _viewportCenterPos.y;
         
         Vector3 startPos = transform.position;
         Vector3 targetPos = new Vector3(
@@ -439,11 +434,11 @@ public class CustomSlider : MonoBehaviour
 
         float elapsedTime = 0;
 
-        while (elapsedTime < scrollDuration)
+        while (elapsedTime < ScrollDuration)
         {
             elapsedTime += Time.deltaTime;
-            float normalizedTime = Mathf.Clamp01(elapsedTime / scrollDuration);
-            float curveValue = scrollCurve.Evaluate(normalizedTime);
+            float normalizedTime = Mathf.Clamp01(elapsedTime / ScrollDuration);
+            float curveValue = ScrollCurve.Evaluate(normalizedTime);
 
             transform.position = Vector3.Lerp(startPos, targetPos, curveValue);
 
@@ -458,7 +453,7 @@ public class CustomSlider : MonoBehaviour
         }
 
         transform.position = targetPos;
-        currentCenterIndex = targetIndex;
+        _currentCenterIndex = targetIndex;
 
         if (excludedElement != null)
         {
@@ -466,7 +461,7 @@ public class CustomSlider : MonoBehaviour
             excludedElement.transform.position = excludedElementStartPos + new Vector3(0, finalScrollOffset, 0);
         }
 
-        isScrolling = false;
+        _isScrolling = false;
 
     }
 }

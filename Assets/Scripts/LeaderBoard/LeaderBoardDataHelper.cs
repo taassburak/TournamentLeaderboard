@@ -54,10 +54,6 @@ using UnityEngine;
         {
             
             Application.quitting -= SaveOnQuit;
-            
-            #if UNITY_ANDROID || UNITY_IOS
-            Application.focusChanged -= OnApplicationFocusChanged;
-            #endif
         }
 
         

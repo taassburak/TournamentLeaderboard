@@ -5,20 +5,21 @@ using System.Collections.Generic;
 using Core;
 using Scripts.Pooling;
 using Ui;
+using UnityEngine.Serialization;
+
 namespace Scripts.Data
 {
     
     public class LeaderBoardManager : CustomManager
     {
         [Header("Settings")]
-        [SerializeField] private int visibleEntries = 20;
-        [Tooltip("Oyundan çıkış dışında manuel kaydetme işlemi yapılmasını istiyorsanız işaretleyin")]
-        [SerializeField] private bool allowManualSave = false;
+        [SerializeField] private int _visibleEntries = 20;
+        [SerializeField] private bool _allowManualSave = false;
         
         [Header("Debug")]
-        [SerializeField, ReadOnly] private int totalPlayerCount;
         [SerializeField, ReadOnly] private int myRank;
-        [SerializeField, ReadOnly] private bool isDirty = false;
+        [SerializeField, ReadOnly] private int _totalPlayerCount;
+        [SerializeField, ReadOnly] private bool _isDirty = false;
         
         [SerializeField] private PlayerInfoElement _playerInfoElementPrefab;
         [SerializeField] private Transform _parent;
@@ -26,13 +27,7 @@ namespace Scripts.Data
         private bool _isInitialized;
 
         [SerializeField] private PoolingController _poolingController;
-
-        public event Action OnUpdateButtonClicked; 
-
         
-        
-        public System.Action OnLeaderboardChanged;
-
         public override void Initialize(GameManager gameManager)
         {
             base.Initialize(gameManager);
@@ -86,12 +81,9 @@ namespace Scripts.Data
             
             _leaderBoardDataHelper.UpdateScoresRandomly();
             UpdateDebugInfo();
-            isDirty = true;
+            _isDirty = true;
             
-            
-            OnLeaderboardChanged?.Invoke();
-            
-            if (allowManualSave)
+            if (_allowManualSave)
             {
                 SaveData();
             }
@@ -125,7 +117,7 @@ namespace Scripts.Data
             if (!_isInitialized) SelfInit();
             
          
-            int halfVisible = visibleEntries / 2;
+            int halfVisible = _visibleEntries / 2;
             
 
             List<PlayerData> topPlayers = _leaderBoardDataHelper.GetTopPlayers(halfVisible);
@@ -167,13 +159,11 @@ namespace Scripts.Data
             if (!_isInitialized) SelfInit();
             
             _leaderBoardDataHelper.UpdatePlayersScore(playerId, newScore);
-
-            OnLeaderboardChanged?.Invoke();
             
             UpdateDebugInfo();
-            isDirty = true;
+            _isDirty = true;
             
-            if (allowManualSave)
+            if (_allowManualSave)
             {
                 SaveData();
             }
@@ -184,10 +174,10 @@ namespace Scripts.Data
         {
             if (!_isInitialized) SelfInit();
             
-            if (allowManualSave)
+            if (_allowManualSave)
             {
                 _leaderBoardDataHelper.SaveManually();
-                isDirty = false;
+                _isDirty = false;
                 Debug.Log("Leaderboard data saved manually.");
             }
             else
@@ -199,9 +189,9 @@ namespace Scripts.Data
         
         private void UpdateDebugInfo()
         {
-            totalPlayerCount = _leaderBoardDataHelper.RuntimePlayerData.PlayersDataList.Count;
+            _totalPlayerCount = _leaderBoardDataHelper.RuntimePlayerData.PlayersDataList.Count;
 
-            List<PlayerData> allSorted = _leaderBoardDataHelper.GetTopPlayers(totalPlayerCount);
+            List<PlayerData> allSorted = _leaderBoardDataHelper.GetTopPlayers(_totalPlayerCount);
             myRank = allSorted.FindIndex(p => p.Id == 0) + 1; // ID 0 = "Me"
         }
 

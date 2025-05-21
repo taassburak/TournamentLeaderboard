@@ -114,7 +114,9 @@ namespace Ui
             var meData = _leaderBoardManager.GetPlayerData(me.AssignedData.Id);
             me.PopulateView(meData, meNewRank);
 
-            if (rankDiff > 0)
+            var elementsAboveMeByRank = _scroll.ContentItems.FindAll(x => x.Rank > meNewRank);
+            
+            if (elementsAboveMeByRank.Count < _scroll.ContentItems.Count / 2)
             {
                 AddExtraElement(Mathf.Abs(rankDiff), false);
 
@@ -153,8 +155,17 @@ namespace Ui
             }
             _scroll.SortContentItemsByRank();
             _scroll.ArrangeItems();
+            
             yield return null;
-            _scroll.ScrollToItem(_currentExtraSize + 5 - unusedItems.Count, 0);
+            if (elementsAboveMeByRank.Count < _scroll.ContentItems.Count / 2)
+            {
+                _scroll.ScrollToItem(_currentExtraSize + 5 - unusedItems.Count, 0);
+
+            }
+            else
+            {
+                _scroll.ScrollToItem(5, 0);
+            }
             me.transform.position = new Vector3(-0.25f, -1.5f);
             yield return new WaitForSeconds(1f);
 
@@ -165,7 +176,7 @@ namespace Ui
 
 
             _scroll.ScrollCustom(desiredScrollIndex);
-            yield return new WaitForSeconds(_scroll.scrollDuration);
+            yield return new WaitForSeconds(_scroll.ScrollDuration);
             me.transform.SetParent(_scroll.transform);
             me.transform.SetSiblingIndex(desiredScrollIndex + 1);
             _scroll.RefreshContentItemsList();

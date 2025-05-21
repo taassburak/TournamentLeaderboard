@@ -8,9 +8,9 @@ using UnityEditor;
 public class CustomCanvas : MonoBehaviour
 {
     [Header("Canvas Settings")]
-    public Camera targetCamera; // Render edilecek kamera
-    [Range(0, 10)] public int sortingOrder = 0; // Render sırası
-    public Color gizmoColor = new Color(0.2f, 0.8f, 0.2f, 0.3f); // Gizmo rengi
+    public Camera targetCamera;
+    [Range(0, 10)] public int sortingOrder = 0;
+    public Color gizmoColor = new Color(0.2f, 0.8f, 0.2f, 0.3f);
 
     private List<CustomUIElement> _uiElements = new List<CustomUIElement>();
 
